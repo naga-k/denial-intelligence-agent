@@ -48,10 +48,13 @@ Senso -> cited.md    -> (stretch) publish grounded amendment recs
 
 ```
 docs/
+  implementation-plan.md      <- architecture, build tiers, schema, demo script
   problem-stats.md            <- market size / why-this-matters research
   sponsor-notes-luminai-fde.md<- notes from the Luminai FDE chat
 ```
 
 ## Status
 
-Pre-build. Ideation + research done. Next: lock ClickHouse schema, then build.
+Pre-build. Ideation + research + plan done. Heartbeat = live Nimble policy
+monitoring (real-time trigger). Next: lock the ClickHouse schema, then build
+Tier 1. See `docs/implementation-plan.md`.
