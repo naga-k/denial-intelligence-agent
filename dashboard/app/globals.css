@@ -1,0 +1,116 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+
+  /* Biophilic healthcare palette */
+  --color-cream: #F2EDE4;
+  --color-mint: #8DD4C3;
+  --color-verdigris: #45A89A;
+  --color-teal-deep: #167A6B;
+  --color-baltic: #1B3B5A;
+  --color-rosemary: #4A7559;
+  --color-amber-warm: #D4915B;
+  --color-coral: #C4716B;
+}
+
+:root {
+  --background: #0B1E2E;
+  --foreground: #F2EDE4;
+  --card: rgba(255, 255, 255, 0.04);
+  --card-foreground: #F2EDE4;
+  --popover: #0F2A3C;
+  --popover-foreground: #F2EDE4;
+  --primary: #45A89A;
+  --primary-foreground: #0B1E2E;
+  --secondary: rgba(255, 255, 255, 0.06);
+  --secondary-foreground: #F2EDE4;
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: rgba(242, 237, 228, 0.52);
+  --accent: rgba(141, 212, 195, 0.10);
+  --accent-foreground: #8DD4C3;
+  --destructive: #C4716B;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #45A89A;
+  --chart-1: #45A89A;
+  --chart-2: #8DD4C3;
+  --chart-3: #5B8C6B;
+  --chart-4: #2E9E8E;
+  --chart-5: #D4915B;
+  --radius: 0.75rem;
+}
+
+/* Glassmorphism utilities */
+@utility glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+@utility glass-bright {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+@utility glass-header {
+  background: rgba(11, 30, 46, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply text-foreground;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(22, 122, 107, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 80%, rgba(27, 59, 90, 0.25) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 50%, rgba(74, 117, 89, 0.08) 0%, transparent 70%),
+      linear-gradient(160deg, #09192A 0%, #081A18 50%, #0A1B28 100%);
+    min-height: 100vh;
+  }
+}
