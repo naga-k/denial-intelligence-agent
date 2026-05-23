@@ -36,7 +36,17 @@ def process_unhandled(graph):
             "revisions": 0,
         })
         impacted = state.get("impact", {}).get("contracts", [])
-        contract_id = impacted[0]["contract_id"] if impacted else "UNKNOWN"
+        if not impacted:
+            # No claims/contracts hit (e.g. an unrelated policy or a fetch that
+            # returned a block page) — mark processed but don't persist a rec.
+            client().command(
+                "ALTER TABLE denials.policy_changes UPDATE processed = 1 "
+                "WHERE change_id = {c:String}",
+                parameters={"c": ch["change_id"]},
+            )
+            print(f"[loop] {ch['change_id']}: no impacted contracts — skipped")
+            continue
+        contract_id = impacted[0]["contract_id"]
         insert("recommendations", [dict(
             rec_id=f"REC-{uuid.uuid4().hex[:10]}", change_id=ch["change_id"],
             contract_id=contract_id, payer_name=ch["payer_name"],
