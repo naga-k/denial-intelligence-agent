@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import {
   AlertCircle,
   DollarSign,
@@ -11,7 +14,29 @@ import { DenialRateChart } from "@/components/dashboard/DenialRateChart"
 import { MonthlyTrendChart } from "@/components/dashboard/MonthlyTrendChart"
 import { ReasonCodeChart } from "@/components/dashboard/ReasonCodeChart"
 import { RecommendationsTable } from "@/components/dashboard/RecommendationsTable"
-import { kpis } from "@/lib/fake-data"
+import {
+  contracts as fakeContracts,
+  kpis as fakeKpis,
+  denialReasons as fakeReasons,
+  monthlyTrend as fakeMonthly,
+  recommendations as fakeRecs,
+} from "@/lib/fake-data"
+
+type Metrics = {
+  contracts: typeof fakeContracts
+  kpis: typeof fakeKpis
+  denialReasons: typeof fakeReasons
+  monthlyTrend: typeof fakeMonthly
+  recommendations: typeof fakeRecs
+}
+
+const FALLBACK: Metrics = {
+  contracts: fakeContracts,
+  kpis: fakeKpis,
+  denialReasons: fakeReasons,
+  monthlyTrend: fakeMonthly,
+  recommendations: fakeRecs,
+}
 
 function fmt$(n: number) {
   return n >= 1_000_000
@@ -24,6 +49,32 @@ function fmtPct(n: number) {
 }
 
 export default function DashboardPage() {
+  // Seed with fake data so the first paint is never empty; then poll real data.
+  const [m, setM] = useState<Metrics>(FALLBACK)
+  const [live, setLive] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    const tick = () =>
+      fetch("/api/metrics")
+        .then((r) => r.json())
+        .then((d) => {
+          if (alive) {
+            setM(d)
+            setLive(true)
+          }
+        })
+        .catch(() => {})
+    tick()
+    const id = setInterval(tick, 3000)
+    return () => {
+      alive = false
+      clearInterval(id)
+    }
+  }, [])
+
+  const kpis = m.kpis
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -49,7 +100,7 @@ export default function DashboardPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-verdigris opacity-60" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-verdigris" />
               </span>
-              agent active
+              {live ? "live · agent active" : "connecting…"}
             </span>
             <span className="text-cream/20 mx-1">·</span>
             <span className="text-xs text-cream/30">
@@ -64,7 +115,6 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
@@ -86,7 +136,7 @@ export default function DashboardPage() {
           <StatCard
             title="Avg Denial Rate"
             value={fmtPct(kpis.avgDenialRate)}
-            subtitle="weighted across 7 payer contracts"
+            subtitle="weighted across payer contracts"
             icon={AlertCircle}
             accentClass="text-amber-warm"
           />
@@ -111,7 +161,7 @@ export default function DashboardPage() {
                 Total denied claims per payer contract
               </p>
             </div>
-            <DenialsByContractChart />
+            <DenialsByContractChart data={m.contracts} />
           </div>
 
           <div className="glass rounded-2xl p-6 relative overflow-hidden">
@@ -126,7 +176,7 @@ export default function DashboardPage() {
                 <span className="text-amber-warm/70">&gt;15%</span> elevated
               </p>
             </div>
-            <DenialRateChart />
+            <DenialRateChart data={m.contracts} />
           </div>
         </div>
 
@@ -142,7 +192,7 @@ export default function DashboardPage() {
                 Top 3 contracts by dollar exposure, last 7 months
               </p>
             </div>
-            <MonthlyTrendChart />
+            <MonthlyTrendChart data={m.monthlyTrend} />
           </div>
 
           <div className="glass rounded-2xl p-6 relative overflow-hidden">
@@ -155,7 +205,7 @@ export default function DashboardPage() {
                 CARC breakdown across all contracts
               </p>
             </div>
-            <ReasonCodeChart />
+            <ReasonCodeChart data={m.denialReasons} />
           </div>
         </div>
 
@@ -175,7 +225,7 @@ export default function DashboardPage() {
               {kpis.totalRecs} total
             </span>
           </div>
-          <RecommendationsTable />
+          <RecommendationsTable data={m.recommendations} />
         </div>
 
         {/* Footer note */}

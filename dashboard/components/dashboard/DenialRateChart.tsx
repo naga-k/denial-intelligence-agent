@@ -15,15 +15,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { contracts } from "@/lib/fake-data"
-
-const chartData = [...contracts]
-  .sort((a, b) => b.denialRate - a.denialRate)
-  .map((c) => ({
-    payer: c.payer,
-    rate: c.denialRate,
-    network: c.network,
-  }))
+import { contracts, type Contract } from "@/lib/fake-data"
 
 function rateColor(rate: number) {
   if (rate >= 20) return "#C4716B"
@@ -36,7 +28,10 @@ const chartConfig: ChartConfig = {
   rate: { label: "Denial Rate %", color: "#45A89A" },
 }
 
-export function DenialRateChart() {
+export function DenialRateChart({ data = contracts }: { data?: Contract[] }) {
+  const chartData = [...data]
+    .sort((a, b) => b.denialRate - a.denialRate)
+    .map((c) => ({ payer: c.payer, rate: c.denialRate, network: c.network }))
   return (
     <ChartContainer config={chartConfig} className="h-[280px] w-full">
       <BarChart

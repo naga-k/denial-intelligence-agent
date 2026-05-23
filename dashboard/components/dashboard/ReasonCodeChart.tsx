@@ -6,15 +6,13 @@ import {
   ChartTooltip,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { denialReasons } from "@/lib/fake-data"
+import { denialReasons, type DenialReason } from "@/lib/fake-data"
 
-const total = denialReasons.reduce((s, d) => s + d.count, 0)
-
-const chartConfig: ChartConfig = Object.fromEntries(
-  denialReasons.map((d) => [d.code, { label: d.label, color: d.fill }])
-)
-
-export function ReasonCodeChart() {
+export function ReasonCodeChart({ data = denialReasons }: { data?: DenialReason[] }) {
+  const total = data.reduce((s, d) => s + d.count, 0)
+  const chartConfig: ChartConfig = Object.fromEntries(
+    data.map((d) => [d.code, { label: d.label, color: d.fill }])
+  )
   return (
     <div className="flex flex-col gap-4">
       <ChartContainer config={chartConfig} className="h-[200px] w-full">
@@ -35,7 +33,7 @@ export function ReasonCodeChart() {
             }}
           />
           <Pie
-            data={denialReasons}
+            data={data}
             dataKey="count"
             nameKey="label"
             cx="50%"
@@ -45,7 +43,7 @@ export function ReasonCodeChart() {
             paddingAngle={2}
             strokeWidth={0}
           >
-            {denialReasons.map((d, i) => (
+            {data.map((d, i) => (
               <Cell key={i} fill={d.fill} fillOpacity={0.88} />
             ))}
           </Pie>
@@ -54,7 +52,7 @@ export function ReasonCodeChart() {
 
       {/* Legend */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-        {denialReasons.map((d) => {
+        {data.map((d) => {
           const pct = ((d.count / total) * 100).toFixed(0)
           return (
             <div key={d.code} className="flex items-center gap-2 min-w-0">

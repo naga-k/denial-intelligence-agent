@@ -1,4 +1,4 @@
-import { recommendations, type RecStatus } from "@/lib/fake-data"
+import { recommendations, type RecStatus, type Recommendation } from "@/lib/fake-data"
 import { cn } from "@/lib/utils"
 import { ExternalLink } from "lucide-react"
 
@@ -33,7 +33,7 @@ function ConfidencePill({ value }: { value: number }) {
   )
 }
 
-export function RecommendationsTable() {
+export function RecommendationsTable({ data = recommendations }: { data?: Recommendation[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
@@ -50,12 +50,12 @@ export function RecommendationsTable() {
           </tr>
         </thead>
         <tbody>
-          {recommendations.map((rec, i) => (
+          {data.map((rec, i) => (
             <tr
               key={rec.id}
               className={cn(
                 "border-b border-white/05 transition-colors hover:bg-white/[0.025]",
-                i === recommendations.length - 1 && "border-b-0"
+                i === data.length - 1 && "border-b-0"
               )}
             >
               <td className="py-4 px-4 pl-0 whitespace-nowrap">

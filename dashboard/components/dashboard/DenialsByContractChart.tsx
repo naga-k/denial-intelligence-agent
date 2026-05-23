@@ -14,13 +14,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { contracts } from "@/lib/fake-data"
-
-const chartData = contracts.map((c) => ({
-  payer: c.payer.replace(" Adv.", "\nAdv."),
-  denials: c.denials,
-  dollars: c.dollarsAtRisk,
-}))
+import { contracts, type Contract } from "@/lib/fake-data"
 
 const chartConfig: ChartConfig = {
   denials: { label: "Denials", color: "#45A89A" },
@@ -36,7 +30,12 @@ const BAR_COLORS = [
   "#155446",
 ]
 
-export function DenialsByContractChart() {
+export function DenialsByContractChart({ data = contracts }: { data?: Contract[] }) {
+  const chartData = data.map((c) => ({
+    payer: c.payer.replace(" Adv.", "\nAdv."),
+    denials: c.denials,
+    dollars: c.dollarsAtRisk,
+  }))
   return (
     <ChartContainer config={chartConfig} className="h-[280px] w-full">
       <BarChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>

@@ -9,7 +9,7 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { monthlyTrend } from "@/lib/fake-data"
+import { monthlyTrend, type MonthlyPoint } from "@/lib/fake-data"
 
 const chartConfig: ChartConfig = {
   medicareAdv:  { label: "Medicare Adv.",  color: "#45A89A" },
@@ -21,10 +21,10 @@ function formatDollar(v: number) {
   return `$${(v / 1000).toFixed(0)}k`
 }
 
-export function MonthlyTrendChart() {
+export function MonthlyTrendChart({ data = monthlyTrend }: { data?: MonthlyPoint[] }) {
   return (
     <ChartContainer config={chartConfig} className="h-[280px] w-full">
-      <AreaChart data={monthlyTrend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="gradMedicare" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%"  stopColor="#45A89A" stopOpacity={0.35} />
