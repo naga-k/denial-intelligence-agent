@@ -1,9 +1,12 @@
 """Heartbeat: poll policies, then run the graph on every unprocessed change and
 write a grounded recommendation. The `processed` flag on policy_changes is the
-queue — it guarantees each change is drafted exactly once. Run with ddtrace-run
-so Datadog captures the graph trace:
+queue — it guarantees each change is drafted exactly once.
 
-    cd agent && .venv/bin/ddtrace-run .venv/bin/python -m src.run_loop
+Run with plain python (NOT ddtrace-run) — agentless LLM Obs sends straight to
+Datadog over HTTPS and auto-instruments LangChain; ddtrace-run would also try a
+local APM agent we don't run:
+
+    python -m agent.src.run_loop      # from the repo root
 """
 import time
 import uuid
