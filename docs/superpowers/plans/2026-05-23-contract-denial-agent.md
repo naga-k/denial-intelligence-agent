@@ -228,10 +228,11 @@ CREATE TABLE IF NOT EXISTS denials.recommendations (
   rec_text      String,
   grounded_policy_url String,
   confidence    Float32,
+  status        Enum('new' = 1, 'in-review' = 2, 'accepted' = 3, 'dismissed' = 4) DEFAULT 'new',
   created_at    DateTime
 ) ENGINE = MergeTree ORDER BY created_at;
 
--- Dashboard reads THIS, not raw scans.
+-- Dashboard reads THIS, not raw scans.  (Contract type in fake-data.ts)
 CREATE VIEW IF NOT EXISTS denials.denial_rate_by_contract AS
 SELECT
   c.contract_id          AS contract_id,
@@ -244,7 +245,24 @@ SELECT
 FROM denials.contracts c
 LEFT JOIN denials.claims cl ON cl.contract_id = c.contract_id
 GROUP BY c.contract_id;
+
+-- CARC reason-code breakdown  (DenialReason type / ReasonCodeChart)
+CREATE VIEW IF NOT EXISTS denials.denials_by_reason AS
+SELECT carc_code AS code, any(reason_text) AS label, count() AS count
+FROM denials.denials GROUP BY carc_code ORDER BY count DESC;
+
+-- Monthly $-at-risk per payer  (MonthlyPoint type / MonthlyTrendChart)
+CREATE VIEW IF NOT EXISTS denials.monthly_dollars_at_risk AS
+SELECT formatDateTime(denied_at, '%b') AS month,
+       toStartOfMonth(denied_at)       AS month_start,
+       payer_name,
+       sum(denied_amount)              AS dollars_at_risk
+FROM denials.denials
+GROUP BY month, month_start, payer_name
+ORDER BY month_start;
 ```
+
+> **Schema reconciled to the existing dashboard (2026-05-23):** the teammate's `dashboard/lib/fake-data.ts` is the authoritative consumer. Added `recommendations.status` (his `RecStatus`), `denials_by_reason` (his `DenialReason`/`ReasonCodeChart`), and `monthly_dollars_at_risk` (his `MonthlyPoint`/`MonthlyTrendChart`). The snake_case→camelCase + fraction→percent mapping is done in the `/api/metrics` bridge (Task 4b), so his components stay untouched.
 
 - [ ] **Step 2: db.py helpers**
 
