@@ -64,6 +64,10 @@ def router(state):
 def impact_analyst(state):
     cpts = state.get("implicated", {}).get("cpt_codes", [])
     cpt_list = ",".join(f"'{c}'" for c in cpts) or "''"
+    # A payer's policy change only affects THAT payer's claims — scope to it so
+    # the recommendation stays focused on the contract actually implicated.
+    payer = state.get("change", {}).get("payer_name", "")
+    payer_filter = "AND payer_name = {payer:String}" if payer else ""
     rows = query_rows(f"""
         SELECT contract_id, payer_name,
                count() AS denials, toFloat64(sum(denied_amount)) AS dollars
@@ -71,9 +75,10 @@ def impact_analyst(state):
         WHERE claim_id IN (
             SELECT claim_id FROM denials.claims WHERE cpt_code IN ({cpt_list})
         )
+        {payer_filter}
         GROUP BY contract_id, payer_name
         ORDER BY dollars DESC
-    """)
+    """, {"payer": payer})
     total = sum(r["dollars"] for r in rows)
     return {"impact": {"contracts": rows, "total_dollars": total}}
 

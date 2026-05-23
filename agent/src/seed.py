@@ -39,6 +39,10 @@ CPTS = ["70553", "73721", "99213", "99214", "77300", "77315", "45378"]
 ICDS = ["G43.909", "G47.33", "M54.5", "M25.561", "Z12.11", "Z87.39"]
 
 CLAIMS_PER_CONTRACT = 170  # ~1190 claims total
+SIG_FREQ = 0.20   # share of a contract's claims that are its signature CPT
+SIG_MULT = 2.0    # signature CPT denied at 2x the contract's baseline
+# Normalizer so the blended denial rate stays at the contract's target `rate`.
+_BLEND = SIG_FREQ * SIG_MULT + (1 - SIG_FREQ)
 
 
 def run():
@@ -55,11 +59,14 @@ def run():
     claims, dens = [], []
     end = date(2026, 5, 20)
     for c in CONTRACTS:
+        baseline = c["rate"] / _BLEND  # so blended rate ≈ c["rate"] (realistic target)
+        others = [x for x in CPTS if x != c["sig_cpt"]]
         for _ in range(CLAIMS_PER_CONTRACT):
-            cpt = c["sig_cpt"] if random.random() < 0.4 else random.choice(CPTS)
-            denied = random.random() < c["rate"]
-            if cpt == c["sig_cpt"] and random.random() < 0.5:
-                denied = True  # the bleed: signature CPT denied far more often
+            is_sig = random.random() < SIG_FREQ
+            cpt = c["sig_cpt"] if is_sig else random.choice(others)
+            # Signature CPT bleeds at SIG_MULT× baseline, but overall stays realistic.
+            p_deny = min(baseline * (SIG_MULT if is_sig else 1.0), 0.85)
+            denied = random.random() < p_deny
             claim_id = f"CLM-{uuid.uuid4().hex[:10]}"
             billed = Decimal(str(round(random.uniform(180, 4200), 2)))
             dos = end - timedelta(days=random.randint(0, 200))  # ~7 months back
