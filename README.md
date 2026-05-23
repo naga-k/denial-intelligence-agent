@@ -41,8 +41,10 @@ Senso -> cited.md    -> (stretch) publish grounded amendment recs
 - **ClickHouse** — locked. The analytics brain + live dashboard.
 - **Nimble** — open-web enrichment: payer policies, ICD/CPT rules, CMS data.
 - **Datadog** — agent observability (AI Agent Monitoring / LLM Obs).
-- **Gemini** — agent reasoning (via Google ADK = auto-instrumented by Datadog).
-- **Senso** — stretch goal.
+- **Agent** — LangGraph multi-agent graph (auto-instrumented by Datadog), with a
+  critic self-correction cycle + ClickHouse MCP. Gemini or Claude as the model.
+- **Dashboard** — Next.js + Tremor.
+- **Senso** — stretch goal (decide live at ~4 hrs).
 
 ## Repo structure
 

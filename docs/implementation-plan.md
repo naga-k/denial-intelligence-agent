@@ -75,16 +75,45 @@ Senso (only if we publish to cited.md); Datadog (host, instrument with LLM Obs).
 - Synthetic generator: claims, contracts (in/out of network), denials with real
   CARC/RARC reason codes, ICD/CPT codes, $ amounts.
 - ClickHouse schema + ingestion + materialized views.
-- Live dashboard (denials per contract, denial rate, $ at risk, recs table).
+- Next.js dashboard with Tremor (or shadcn/ui) for fast, clean charts:
+  denials per contract, denial rate, $ at risk, recs table. Keep polish minimal
+  so the frontend doesn't eat the agent-depth budget.
 
 **Person B — agent + monitor**
 - Nimble policy monitor loop (poll, hash, diff, emit change events).
-- Agent (Gemini via Google ADK so Datadog auto-instruments it): read policy,
-  query ClickHouse, judge contestability, draft amendment rec.
+- LangGraph multi-agent graph (see "Agent graph" below): Datadog auto-instruments
+  it, so the decision-graph trace is a showpiece. Gemini or Claude as the model.
 - Datadog LLM Obs wiring.
 
 **First 30 min, together:** lock the ClickHouse schema below. It is the contract
 between the two of us. Once fixed, build in parallel without blocking.
+
+## Agent graph (LangGraph) — where the tech depth lives
+
+Multi-agent graph, auto-instrumented by Datadog. The trace is a showpiece: a real
+graph of nodes with a cycle, not a flat single LLM call.
+
+```
+policy_change ->
+  Router          classify the change; which CPT/ICD codes + contracts implicated
+    -> Impact Analyst   queries ClickHouse via the ClickHouse MCP (NL -> SQL):
+    |                   which claims/contracts are hit, $ at risk
+    -> Policy Reasoner  reads the changed policy text (Nimble); judges whether the
+    |                   related denials are contestable vs the payer's own rule
+    -> Rec Drafter      drafts the contract-amendment rec, grounded + cited
+    -> Critic           grounded? sensible? if weak -> back to Rec Drafter  <-- cycle
+    -> (stretch) Publisher -> Senso -> cited.md
+```
+
+Depth multipliers (both visible in the Datadog trace):
+- **Critic self-correction cycle** — what separates an agent from a script. Judges
+  watch it loop and improve live.
+- **ClickHouse MCP** — the Impact Analyst does natural-language -> SQL on stage.
+  This is exactly how ClickHouse wants their tool used (agent-facing analytics).
+
+Framework: **LangGraph**. **DeepAgents** (planning + sub-agents on top of LangGraph)
+optional if Person B is comfortable. **Google ADK is out** — unfamiliar, learning
+it on the clock steals from the depth that matters.
 
 ## Starter ClickHouse schema (the contract — refine together)
 
@@ -162,10 +191,19 @@ we only control the timing.
   works against the controllable page even if a real URL times out.
 - **Scope creep** -> Tier 3 is cut the moment Tier 1+2 isn't rock solid.
 
-## Open decisions (for Naga to think through)
-- [ ] Dashboard tech: Streamlit (fastest) vs Next.js (prettier) vs ClickHouse-native UI.
-- [ ] Agent framework: Google ADK (Datadog auto-instrument) vs plain loop + manual spans.
-- [ ] Which real payer policies to monitor (pick 2-3 with clean, public coverage pages).
-- [ ] Synthetic data volume + how many contracts to seed.
-- [ ] Do we attempt Senso (Tier 3) at all, given time.
+## Locked decisions (2026-05-23)
+- **Dashboard:** Next.js + Tremor (or shadcn/ui). Minimal polish, fast clean charts.
+- **Agent:** LangGraph multi-agent graph (Router / Impact Analyst / Policy Reasoner
+  / Rec Drafter / Critic) with a critic self-correction cycle + ClickHouse MCP.
+  DeepAgents optional. ADK out.
+- **Model:** Gemini or Claude behind LangGraph.
+- **Senso:** decide live at ~4 hrs (cut-first stretch).
+- **Synthetic data:** ~5 contracts, ~1,000 claims, ~150 denials (~13%); 2-3
+  contracts with deliberate ugly patterns tied to the monitored policies.
+- **Real policies to monitor:** 1 CMS coverage determination (LCD/NCD) + 1
+  commercial payer medical policy (UHC or Aetna), plus the controllable demo page.
+
+## Still to verify
+- [ ] Confirm the chosen CMS + commercial payer policy pages are publicly
+      fetchable (no login) before locking the monitor targets.
 ```
